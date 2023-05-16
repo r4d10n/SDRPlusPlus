@@ -241,11 +241,11 @@ void SinkManager::setStreamSink(std::string name, std::string providerName) {
 
 void SinkManager::showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight, int btnBorder, bool sameLine) {
     // TODO: Replace map with some hashmap for it to be faster
-    float height = ImGui::GetTextLineHeightWithSpacing() + 2;
+    float height = ImGui::GetTextLineHeightWithSpacing() + 2;    
     float sliderHeight = height;
     if (btnHeight > 0) {
         height = btnHeight;
-    }
+    }    
 
     float ypos = ImGui::GetCursorPosY();
     float sliderOffset = 8.0f * style::uiScale;
@@ -290,16 +290,31 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
 
     ImGui::SameLine();
 
-    ImGui::SetNextItemWidth(width - height - sliderOffset);
-    ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btnBorder);
-    if (ImGui::SliderFloat((prefix + name).c_str(), &stream->guiVolume, 0.0f, 1.0f, "")) {
-        stream->setVolume(stream->guiVolume);
-        core::configManager.acquire();
-        saveStreamConfig(name);
-        core::configManager.release(true);
-    }
+    // ImGui::SetNextItemWidth(width - height - sliderOffset);
+    // ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btnBorder);
+    // if (ImGui::SliderFloat((prefix + name).c_str(), &stream->guiVolume, 0.0f, 1.0f, "")) {
+    //     stream->setVolume(stream->guiVolume);
+    //     core::configManager.acquire();
+    //     saveStreamConfig(name);
+    //     core::configManager.release(true);
+    // }
     if (sameLine) { ImGui::SetCursorPosY(ypos); }
     //ImGui::SetCursorPosY(ypos);
+}
+
+void SinkManager::setVolumeSlider(std::string name, float volume)
+{
+    SinkManager::Stream* stream = streams[name];
+    stream->setVolume(volume);
+    core::configManager.acquire();
+    saveStreamConfig(name);
+    core::configManager.release(true);
+}
+
+float SinkManager::getVolumeSlider(std::string name)
+{
+    SinkManager::Stream* stream = streams[name];
+    return stream->getVolume();    
 }
 
 void SinkManager::loadStreamConfig(std::string name) {

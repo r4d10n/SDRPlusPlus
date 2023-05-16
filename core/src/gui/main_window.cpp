@@ -406,13 +406,14 @@ void MainWindow::draw() {
 
     ImGui::SameLine();
 
-    int snrOffset = 87.0f * style::uiScale;
-    int snrWidth = std::clamp<int>(ImGui::GetWindowSize().x - ImGui::GetCursorPosX() - snrOffset, 100.0f * style::uiScale, 300.0f * style::uiScale);
-    int snrPos = std::max<int>(ImGui::GetWindowSize().x - (snrWidth + snrOffset), ImGui::GetCursorPosX());
+    // int snrOffset = 87.0f * style::uiScale;
+    // int snrWidth = std::clamp<int>(ImGui::GetWindowSize().x - ImGui::GetCursorPosX() - snrOffset, 100.0f * style::uiScale, 300.0f * style::uiScale);
+    // int snrPos = std::max<int>(ImGui::GetWindowSize().x - (snrWidth + snrOffset), ImGui::GetCursorPosX());
 
-    ImGui::SetCursorPosX(snrPos);
-    ImGui::SetCursorPosY(origY + (5.0f * style::uiScale));
-    ImGui::SetNextItemWidth(snrWidth);
+    // ImGui::SetCursorPosX(snrPos);
+    // ImGui::SetCursorPosY(origY + (5.0f * style::uiScale));
+    //ImGui::SetNextItemWidth(snrWidth);
+    ImGui::SetNextItemWidth(100 * style::uiScale);
     ImGui::SNRMeter((vfo != NULL) ? gui::waterfall.selectedVFOSNR : 0);
 
     // Note: this is what makes the vertical size correct, needs to be fixed
@@ -595,48 +596,132 @@ void MainWindow::draw() {
 
     ImGui::NextColumn();
     ImGui::BeginChild("WaterfallControls");
+    
+    static bool volSelected=1,zoomSelected=0, minSelected=0, maxSelected=0;   
 
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Zoom").x / 2.0));
-    ImGui::TextUnformatted("Zoom");
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10 * style::uiScale);
-    ImVec2 wfSliderSize(20.0 * style::uiScale, 150.0 * style::uiScale);
-    if (ImGui::VSliderFloat("##_7_", wfSliderSize, &bw, 1.0, 0.0, "")) {
-        double factor = (double)bw * (double)bw;
+    if (volSelected)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(4 / 7.0f, 0.6f, 0.6f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(4 / 7.0f, 0.7f, 0.7f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(4 / 7.0f, 0.1f, 0.1f));        
+    }
+    else {
+        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(4 / 7.0f, 0.1f, 0.1f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(4 / 7.0f, 0.4f, 0.4f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(4 / 7.0f, 0.6f, 0.6f));        
+    }
+    if(ImGui::Button("Vol", ImVec2(ImGui::GetWindowSize().x,ImGui::CalcTextSize("Vol").y+15))){
+        volSelected = 1; zoomSelected = 0; maxSelected = 0; minSelected = 0;        
+    }
+    ImGui::PopStyleColor(3);
 
-        // Map 0.0 -> 1.0 to 1000.0 -> bandwidth
-        double wfBw = gui::waterfall.getBandwidth();
-        double delta = wfBw - 1000.0;
-        double finalBw = std::min<double>(1000.0 + (factor * delta), wfBw);
+    if (zoomSelected)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(4 / 7.0f, 0.6f, 0.6f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(4 / 7.0f, 0.7f, 0.7f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(4 / 7.0f, 0.1f, 0.1f));        
+    }
+    else {
+        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(4 / 7.0f, 0.1f, 0.1f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(4 / 7.0f, 0.4f, 0.4f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(4 / 7.0f, 0.6f, 0.6f));        
+    }
+    if(ImGui::Button("Zoom", ImVec2(ImGui::GetWindowSize().x,ImGui::CalcTextSize("Zoom").y+15))){
+        volSelected = 0; zoomSelected = 1; maxSelected = 0; minSelected = 0;        
+    }
+    ImGui::PopStyleColor(3);
 
-        gui::waterfall.setViewBandwidth(finalBw);
-        if (vfo != NULL) {
-            gui::waterfall.setViewOffset(vfo->centerOffset); // center vfo on screen
+    if (maxSelected)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(4 / 7.0f, 0.6f, 0.6f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(4 / 7.0f, 0.7f, 0.7f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(4 / 7.0f, 0.1f, 0.1f));        
+    }
+    else {
+        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(4 / 7.0f, 0.1f, 0.1f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(4 / 7.0f, 0.4f, 0.4f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(4 / 7.0f, 0.6f, 0.6f));        
+    }
+    if(ImGui::Button("Max", ImVec2(ImGui::GetWindowSize().x,ImGui::CalcTextSize("Max").y+15))){
+        volSelected = 0; zoomSelected = 0; maxSelected = 1; minSelected = 0;        
+    }
+    ImGui::PopStyleColor(3);
+
+    if (minSelected)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(4 / 7.0f, 0.6f, 0.6f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(4 / 7.0f, 0.7f, 0.7f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(4 / 7.0f, 0.1f, 0.1f));        
+    }
+    else {
+        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(4 / 7.0f, 0.1f, 0.1f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(4 / 7.0f, 0.4f, 0.4f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(4 / 7.0f, 0.6f, 0.6f));        
+    }
+    if(ImGui::Button("Min", ImVec2(ImGui::GetWindowSize().x,ImGui::CalcTextSize("Min").y+15))){
+        volSelected = 0; zoomSelected = 0; maxSelected = 0; minSelected = 1;        
+    }
+    ImGui::PopStyleColor(3);
+
+    ImGui::NewLine();
+    
+    ImVec2 wfSliderSize(20.0 * style::uiScale, 100.0 * style::uiScale);
+
+    if (volSelected) {    
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Vol").x / 2.0));
+        ImGui::TextUnformatted("Vol");
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10 * style::uiScale);
+
+        float vol = sigpath::sinkManager.getVolumeSlider(gui::waterfall.selectedVFO) ;        
+        if (ImGui::VSliderFloat("##_6_", wfSliderSize, &vol, 0.0, 1.0, "")) {
+            sigpath::sinkManager.setVolumeSlider(gui::waterfall.selectedVFO, vol);
+        }        
+    }
+
+    else if (zoomSelected) {
+    
+        ImGui::TextUnformatted("Zoom");
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10 * style::uiScale);
+        
+        if (ImGui::VSliderFloat("##_7_", wfSliderSize, &bw, 1.0, 0.0, "")) {
+            double factor = (double)bw * (double)bw;
+
+            // Map 0.0 -> 1.0 to 1000.0 -> bandwidth
+            double wfBw = gui::waterfall.getBandwidth();
+            double delta = wfBw - 1000.0;
+            double finalBw = std::min<double>(1000.0 + (factor * delta), wfBw);
+
+            gui::waterfall.setViewBandwidth(finalBw);
+            if (vfo != NULL) {
+                gui::waterfall.setViewOffset(vfo->centerOffset); // center vfo on screen
+            }            
         }
     }
 
-    ImGui::NewLine();
-
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Max").x / 2.0));
-    ImGui::TextUnformatted("Max");
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10 * style::uiScale);
-    if (ImGui::VSliderFloat("##_8_", wfSliderSize, &fftMax, 0.0, -160.0f, "")) {
-        fftMax = std::max<float>(fftMax, fftMin + 10);
-        core::configManager.acquire();
-        core::configManager.conf["max"] = fftMax;
-        core::configManager.release(true);
+    else if (maxSelected) {    
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Max").x / 2.0));
+        ImGui::TextUnformatted("Max");
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10 * style::uiScale);
+        if (ImGui::VSliderFloat("##_8_", wfSliderSize, &fftMax, 0.0, -160.0f, "")) {
+            fftMax = std::max<float>(fftMax, fftMin + 10);
+            core::configManager.acquire();
+            core::configManager.conf["max"] = fftMax;
+            core::configManager.release(true);
+        }
     }
 
-    ImGui::NewLine();
+    else if (minSelected) {
 
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Min").x / 2.0));
-    ImGui::TextUnformatted("Min");
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10 * style::uiScale);
-    ImGui::SetItemUsingMouseWheel();
-    if (ImGui::VSliderFloat("##_9_", wfSliderSize, &fftMin, 0.0, -160.0f, "")) {
-        fftMin = std::min<float>(fftMax - 10, fftMin);
-        core::configManager.acquire();
-        core::configManager.conf["min"] = fftMin;
-        core::configManager.release(true);
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Min").x / 2.0));
+        ImGui::TextUnformatted("Min");
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10 * style::uiScale);
+        ImGui::SetItemUsingMouseWheel();
+        if (ImGui::VSliderFloat("##_9_", wfSliderSize, &fftMin, 0.0, -160.0f, "")) {
+            fftMin = std::min<float>(fftMax - 10, fftMin);
+            core::configManager.acquire();
+            core::configManager.conf["min"] = fftMin;
+            core::configManager.release(true);
+        }
     }
 
     ImGui::EndChild();
